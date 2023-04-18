@@ -11,24 +11,24 @@ var (
 	versions = []string{"2.5", "x", "2", "1"}
 	layers   = []string{"x", "3", "2", "1"}
 	bitRates = map[string][]int{
-		"V1Lx": []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		"V1L1": []int{0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448},
-		"V1L2": []int{0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384},
-		"V1L3": []int{0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320},
-		"V2Lx": []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		"V2L1": []int{0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256},
-		"V2L2": []int{0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160},
-		"V2L3": []int{0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160},
-		"VxLx": []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		"VxL1": []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		"VxL2": []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		"VxL3": []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		"V1Lx": {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		"V1L1": {0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448},
+		"V1L2": {0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384},
+		"V1L3": {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320},
+		"V2Lx": {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		"V2L1": {0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256},
+		"V2L2": {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160},
+		"V2L3": {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160},
+		"VxLx": {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		"VxL1": {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		"VxL2": {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		"VxL3": {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	}
 	sampleRates = map[string][]int{
-		"x":   []int{0, 0, 0},
-		"1":   []int{44100, 48000, 32000},
-		"2":   []int{22050, 24000, 16000},
-		"2.5": []int{11025, 12000, 8000},
+		"x":   {0, 0, 0},
+		"1":   {44100, 48000, 32000},
+		"2":   {22050, 24000, 16000},
+		"2.5": {11025, 12000, 8000},
 	}
 	samples = map[string]map[string]int{
 		"x": {
@@ -37,13 +37,13 @@ var (
 			"2": 0,
 			"3": 0,
 		},
-		"1": { //MPEGv1,     Layers 1,2,3
+		"1": { // MPEGv1,     Layers 1,2,3
 			"x": 0,
 			"1": 384,
 			"2": 1152,
 			"3": 1152,
 		},
-		"2": { //MPEGv2/2.5, Layers 1,2,3
+		"2": { // MPEGv2/2.5, Layers 1,2,3
 			"x": 0,
 			"1": 384,
 			"2": 1152,
@@ -63,7 +63,7 @@ func skipID3(buffer []byte) int {
 	var id3v2Flags, z0, z1, z2, z3 byte
 	var tagSize, footerSize int
 
-	//http://id3.org/d3v2.3.0
+	// http://id3.org/d3v2.3.0
 	if buffer[0] == 0x49 && buffer[1] == 0x44 && buffer[2] == 0x33 { //'ID3'
 		id3v2Flags = buffer[5]
 		if (id3v2Flags & 0x10) != 0 {
@@ -72,7 +72,7 @@ func skipID3(buffer []byte) int {
 			footerSize = 0
 		}
 
-		//ID3 size encoding is crazy (7 bits in each of 4 bytes)
+		// ID3 size encoding is crazy (7 bits in each of 4 bytes)
 		z0 = buffer[6]
 		z1 = buffer[7]
 		z2 = buffer[8]
@@ -93,7 +93,7 @@ func frameSize(samples int, layer string, bitRate, sampleRate, paddingBit int) i
 		return 0
 	} else if layer == "1" {
 		return ((samples * bitRate * 125 / sampleRate) + paddingBit*4)
-	} else { //layer 2, 3
+	} else { // layer 2, 3
 		return (((samples * bitRate * 125) / sampleRate) + paddingBit)
 	}
 }
@@ -189,12 +189,12 @@ func Calculate(filename string) (time.Duration, error) {
 				offset += int64(info.frameSize)
 				duration += (float64(info.sample) / float64(info.sampleRate))
 			} else {
-				offset++ //Corrupt file?
+				offset++ // Corrupt file?
 			}
 		} else if buffer[0] == 0x54 && buffer[1] == 0x41 && buffer[2] == 0x47 { //'TAG'
-			offset += 128 //Skip over id3v1 tag size
+			offset += 128 // Skip over id3v1 tag size
 		} else {
-			offset++ //Corrupt file?
+			offset++ // Corrupt file?
 		}
 	}
 

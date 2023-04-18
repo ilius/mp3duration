@@ -3,8 +3,8 @@ package mp3duration
 import (
 	"errors"
 	"io"
-	"math"
 	"os"
+	"time"
 )
 
 var (
@@ -145,16 +145,12 @@ func parseFrameHeader(header []byte) *frame {
 	}
 }
 
-func round(duration float64) float64 {
-	return math.Round(duration*1000) / 1000 //round to nearest ms
-}
-
 // Calculate returns the duration of an mp3 file
-func Calculate(filename string) (duration float64, err error) {
+func Calculate(filename string) (time.Duration, error) {
 	var f *os.File
-	f, err = os.Open(filename)
+	f, err := os.Open(filename)
 	if err != nil {
-		return
+		return 0, err
 	}
 	defer f.Close()
 
@@ -168,24 +164,23 @@ func Calculate(filename string) (duration float64, err error) {
 	var bytesRead int
 	bytesRead, err = f.Read(buffer)
 	if err != nil {
-		return
+		return 0, err
 	}
 	if bytesRead < 100 {
 		err = errors.New("Corrupt file")
-		return
+		return 0, err
 	}
 	offset := int64(skipID3(buffer))
 
 	buffer = make([]byte, 10)
+	duration := 0.0
 	for offset < size {
 		bytesRead, e := f.ReadAt(buffer, offset)
 		if e != nil && e != io.EOF {
-			err = e
-			return
+			return 0, e
 		}
 		if bytesRead < 10 {
-			duration = round(duration)
-			return
+			return time.Duration(duration*1000.0) * time.Millisecond, nil
 		}
 
 		if buffer[0] == 0xff && (buffer[1]&0xe0) == 0xe0 {
@@ -203,6 +198,5 @@ func Calculate(filename string) (duration float64, err error) {
 		}
 	}
 
-	duration = round(duration)
-	return
+	return time.Duration(duration*1000.0) * time.Millisecond, nil
 }
